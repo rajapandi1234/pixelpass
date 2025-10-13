@@ -1,0 +1,32 @@
+name: Generate SBOM
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_branch:
+        description: 'Branch to generate SBOM for'
+        required: true
+        default: 'main'
+
+jobs:
+  generate-sbom:
+    name: Generate SBOM with Syft
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo (selected branch)
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.target_branch }}
+
+      - name: Set up Syft
+        uses: anchore/sbom-action@v0.14.3
+        with:
+          format: spdx-json
+          output-file: sbom.spdx.json
+
+      - name: Upload SBOM as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: sbom-${{ github.event.inputs.target_branch }}
+          path: sbom.spdx.json
